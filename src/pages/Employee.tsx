@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import menu from "../data/menu.json";
-import TableGrid from "../components/TableGrid";
-import MenuSection from "../components/MenuSection";
-import { MenuItem } from "../types/order";
-import { createOrder } from "../api";
+import menu from "@data/menu.json";
+import TableGrid from "@components/TableGrid";
+import MenuSection from "@components/MenuSection";
+import { MenuItem } from "@models/order";
+import { createOrder } from "@services/api";
 
 export default function Employee() {
   const [table, setTable] = useState<number>(1);

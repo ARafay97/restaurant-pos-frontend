@@ -1,6 +1,6 @@
 "use client";
 
-import { MenuItem } from "../types/order";
+import { MenuItem } from "@models/order";
 
 interface Props {
   table: number;

@@ -1,8 +1,8 @@
 "use client";
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useEffect, useState } from "react";
-import { fetchOrders } from "../api";
-import { socket } from "../socket";
+import { fetchOrders } from "@services/api";
+import { socket } from "@services/socket";
 export default function OrdersBar() {
     const [completed, setCompleted] = useState([]);
     const [error, setError] = useState(null);

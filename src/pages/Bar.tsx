@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchOrders, patchOrder } from "../api";
-import { Order } from "../types/order";
-import { socket } from "../socket";
+import { fetchOrders, patchOrder } from "@services/api";
+import { Order } from "@models/order";
+import { socket } from "@services/socket";
 
 export default function Bar() {
   const [orders, setOrders] = useState<Order[]>([]);

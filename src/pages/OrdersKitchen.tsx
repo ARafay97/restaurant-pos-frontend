@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchOrders } from "../api";
-import { Order } from "../types/order";
-import { socket } from "../socket";
+import { fetchOrders } from "@services/api";
+import { Order } from "@models/order";
+import { socket } from "@services/socket";
 
 export default function OrdersKitchen() {
   const [completed, setCompleted] = useState<Order[]>([]);

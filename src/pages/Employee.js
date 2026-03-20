@@ -1,10 +1,10 @@
 "use client";
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState } from "react";
-import menu from "../data/menu.json";
-import TableGrid from "../components/TableGrid";
-import MenuSection from "../components/MenuSection";
-import { createOrder } from "../api";
+import menu from "@data/menu.json";
+import TableGrid from "@components/TableGrid";
+import MenuSection from "@components/MenuSection";
+import { createOrder } from "@services/api";
 export default function Employee() {
     const [table, setTable] = useState(1);
     const [isKitchenOrder, setIsKitchenOrder] = useState(false);
