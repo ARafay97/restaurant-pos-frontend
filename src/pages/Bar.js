@@ -6,7 +6,12 @@ import { socket } from "@services/socket";
 export default function Bar() {
     const [orders, setOrders] = useState([]);
     const [error, setError] = useState(null);
-    const filterBar = (list) => list.filter((order) => order.items.some((item) => item.category === "mocktail"));
+    const BAR_CATEGORIES = ["mocktail", "drink", "shake", "dessert"];
+    const KITCHEN_CATEGORIES = ["starter", "main", "side", "burger", "streetfood"];
+    const hasKitchenItems = (order) => order.items.some((item) => KITCHEN_CATEGORIES.includes(item.category));
+    // Treat anything that is NOT a kitchen category as bar so new categories still show up
+    const hasBarItems = (order) => order.items.some((item) => !KITCHEN_CATEGORIES.includes(item.category));
+    const filterBar = (list) => list.filter(hasBarItems);
     const refreshOrders = async () => {
         try {
             const data = (await fetchOrders(false));
@@ -22,7 +27,7 @@ export default function Bar() {
         refreshOrders();
         socket.on("all-orders", (data) => setOrders(filterBar(data)));
         socket.on("new-order", (order) => {
-            if (order.items.some((i) => i.category === "mocktail")) {
+            if (hasBarItems(order)) {
                 setOrders((prev) => [...prev, order]);
             }
         });
@@ -35,10 +40,19 @@ export default function Bar() {
             socket.off("order-status-updated");
         };
     }, []);
-    const markMocktailsDone = async (orderId) => {
+    const markBarItemsDone = async (order) => {
         try {
-            await patchOrder(orderId, { action: "complete" });
-            setOrders((prev) => prev.filter((order) => order.id !== orderId));
+            // First, mark drinks/desserts as done
+            await patchOrder(order.id, { drinksDone: true });
+            // If there are no kitchen items, we can complete the order here.
+            if (!hasKitchenItems(order)) {
+                await patchOrder(order.id, { action: "complete" });
+                setOrders((prev) => prev.filter((o) => o.id !== order.id));
+            }
+            else {
+                // Otherwise, keep it in the list; kitchen will complete once their items are done.
+                setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, drinksDone: true } : o)));
+            }
             setError(null);
         }
         catch (err) {
@@ -47,6 +61,18 @@ export default function Bar() {
     };
     return (_jsxs("div", { style: { padding: 30 }, children: [_jsx("h1", { children: "Drinks / Mocktails" }), error && _jsx("p", { style: { color: "red" }, children: error }), orders.map((order) => {
                 const mocktails = order.items.filter((i) => i.category === "mocktail");
+                const desserts = order.items.filter((i) => i.category === "dessert");
+                const shakes = order.items.filter((i) => i.category === "shake");
+                const drinks = order.items.filter((i) => i.category === "drink");
+                const chaiLassi = drinks.filter((i) => /chai|lassi|tea/i.test(i.name));
+                const softJuice = drinks.filter((i) => !/chai|lassi|tea/i.test(i.name));
+                const barSections = [
+                    { title: "Mocktails", items: mocktails },
+                    { title: "Desserts", items: desserts },
+                    { title: "Chai & Lassi", items: chaiLassi },
+                    { title: "Soft Drinks & Juices", items: softJuice },
+                    { title: "Ice-Cream Shakes", items: shakes },
+                ].filter((s) => s.items.length > 0);
                 return (_jsxs("div", { style: {
                         border: "2px solid black",
                         padding: 20,
@@ -54,12 +80,16 @@ export default function Bar() {
                         width: 500,
                     }, children: [_jsx("h3", { children: order.isKitchenOrder
                                 ? `Order #${order.orderNumber}`
-                                : `Table ${order.table}` }), _jsxs("div", { children: [_jsx("h4", { children: "Mocktails" }), mocktails.map((item, i) => (_jsxs("p", { style: { fontSize: "18px", fontWeight: "bold" }, children: ["\u2022 ", item.name] }, i))), _jsx("button", { onClick: () => markMocktailsDone(order.id), style: {
-                                        background: "#eee",
-                                        color: "black",
-                                        width: "100%",
-                                        padding: "8px",
-                                        marginTop: "10px",
-                                    }, children: "Done" })] })] }, order.id));
+                                : `Table ${order.table}` }), _jsx("div", { style: {
+                                display: "grid",
+                                gridTemplateColumns: "1fr 1fr",
+                                gap: 16,
+                            }, children: barSections.map((section) => (_jsxs("div", { children: [_jsx("h4", { children: section.title }), section.items.map((item, i) => (_jsxs("p", { style: { fontSize: "18px", fontWeight: "bold" }, children: ["\u2022 ", item.name] }, i))), _jsx("button", { onClick: () => markBarItemsDone(order), style: {
+                                            background: order.drinksDone ? "green" : "#eee",
+                                            color: order.drinksDone ? "white" : "black",
+                                            width: "100%",
+                                            padding: "8px",
+                                            marginTop: "10px",
+                                        }, children: "Done" })] }, section.title))) })] }, order.id));
             })] }));
 }

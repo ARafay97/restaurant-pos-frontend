@@ -6,11 +6,12 @@ import { socket } from "@services/socket";
 export default function OrdersBar() {
     const [completed, setCompleted] = useState([]);
     const [error, setError] = useState(null);
+    const KITCHEN_CATEGORIES = ["starter", "main", "side", "burger", "streetfood"];
     useEffect(() => {
         async function refresh() {
             try {
                 const allCompleted = (await fetchOrders(true));
-                const barCompleted = allCompleted.filter((order) => order.items.some((i) => i.category === "mocktail"));
+                const barCompleted = allCompleted.filter((order) => order.items.some((i) => !KITCHEN_CATEGORIES.includes(i.category)));
                 setCompleted(barCompleted);
                 setError(null);
             }
@@ -20,7 +21,7 @@ export default function OrdersBar() {
         }
         refresh();
         socket.on("completed-orders", (orders) => {
-            const barCompleted = orders.filter((order) => order.items.some((i) => i.category === "mocktail"));
+            const barCompleted = orders.filter((order) => order.items.some((i) => !KITCHEN_CATEGORIES.includes(i.category)));
             setCompleted(barCompleted);
         });
         socket.emit("request-completed-orders");
@@ -29,7 +30,7 @@ export default function OrdersBar() {
         };
     }, []);
     return (_jsxs("div", { style: { padding: 30 }, children: [_jsx("h1", { children: "Completed Bar Orders" }), error && _jsx("p", { style: { color: "red" }, children: error }), completed.map((order) => {
-                const mocktails = order.items.filter((i) => i.category === "mocktail");
+                const barItems = order.items.filter((i) => !KITCHEN_CATEGORIES.includes(i.category));
                 return (_jsxs("div", { style: {
                         border: "2px solid green",
                         padding: 20,
@@ -38,6 +39,6 @@ export default function OrdersBar() {
                         backgroundColor: "#f0fff0",
                     }, children: [_jsx("h3", { children: order.isKitchenOrder
                                 ? `Order #${order.orderNumber}`
-                                : `Table ${order.table}` }), mocktails.length > 0 && (_jsxs("div", { style: { marginBottom: 15 }, children: [_jsx("h4", { style: { marginBottom: 8 }, children: "Mocktails" }), mocktails.map((item, i) => (_jsxs("p", { style: { margin: 4 }, children: ["\u2022 ", item.name] }, i)))] }))] }, order.id));
+                                : `Table ${order.table}` }), barItems.length > 0 && (_jsxs("div", { style: { marginBottom: 15 }, children: [_jsx("h4", { style: { marginBottom: 8 }, children: "Bar Items" }), barItems.map((item, i) => (_jsxs("p", { style: { margin: 4 }, children: ["\u2022 ", item.name] }, i)))] }))] }, order.id));
             })] }));
 }

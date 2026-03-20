@@ -6,10 +6,13 @@ import { socket } from "@services/socket";
 export default function Kitchen() {
     const [orders, setOrders] = useState([]);
     const [error, setError] = useState(null);
+    const KITCHEN_CATEGORIES = ["starter", "main", "main-veg", "side", "burger", "streetfood"];
+    const hasKitchenItems = (order) => order.items.some((i) => KITCHEN_CATEGORIES.includes(i.category));
+    const hasBarItems = (order) => order.items.some((i) => !KITCHEN_CATEGORIES.includes(i.category));
     const refreshOrders = async () => {
         try {
             const data = (await fetchOrders(false));
-            setOrders(data);
+            setOrders(data.filter(hasKitchenItems));
             setError(null);
         }
         catch (err) {
@@ -18,9 +21,15 @@ export default function Kitchen() {
     };
     useEffect(() => {
         refreshOrders();
-        socket.on("all-orders", (data) => setOrders(data));
-        socket.on("new-order", (order) => setOrders((prev) => [...prev, order]));
-        socket.on("order-status-updated", (order) => setOrders((prev) => prev.map((o) => (o.id === order.id ? order : o))));
+        socket.on("all-orders", (data) => setOrders(data.filter(hasKitchenItems)));
+        socket.on("new-order", (order) => {
+            if (hasKitchenItems(order)) {
+                setOrders((prev) => [...prev, order]);
+            }
+        });
+        socket.on("order-status-updated", (order) => setOrders((prev) => hasKitchenItems(order)
+            ? prev.map((o) => (o.id === order.id ? order : o))
+            : prev.filter((o) => o.id !== order.id)));
         socket.on("order-complete", (order) => setOrders((prev) => prev.filter((o) => o.id !== order.id)));
         return () => {
             socket.off("all-orders");
@@ -65,14 +74,27 @@ export default function Kitchen() {
     return (_jsxs("div", { style: { padding: 30 }, children: [_jsx("h1", { children: "Kitchen Display" }), error && _jsx("p", { style: { color: "red" }, children: error }), orders
                 .filter((order) => {
                 const starters = order.items.filter((i) => i.category === "starter");
-                const mains = order.items.filter((i) => i.category === "main");
-                return starters.length > 0 || mains.length > 0;
+                const mains = order.items.filter((i) => i.category === "main" || i.category === "main-veg");
+                const burgers = order.items.filter((i) => i.category === "burger");
+                const streetFood = order.items.filter((i) => i.category === "streetfood");
+                const sides = order.items.filter((i) => i.category === "side");
+                return (starters.length > 0 ||
+                    mains.length > 0 ||
+                    burgers.length > 0 ||
+                    streetFood.length > 0 ||
+                    sides.length > 0);
             })
                 .map((order) => {
                 const starters = order.items.filter((i) => i.category === "starter");
-                const mains = order.items.filter((i) => i.category === "main");
-                const allDone = (starters.length === 0 || order.startersDone) &&
-                    (mains.length === 0 || order.mainsDone);
+                const mains = order.items.filter((i) => i.category === "main" || i.category === "main-veg");
+                const burgers = order.items.filter((i) => i.category === "burger");
+                const streetFood = order.items.filter((i) => i.category === "streetfood");
+                const sides = order.items.filter((i) => i.category === "side");
+                const allKitchenDone = (starters.length + streetFood.length === 0 || order.startersDone) &&
+                    (mains.length + burgers.length + sides.length === 0 ||
+                        order.mainsDone);
+                const canComplete = allKitchenDone &&
+                    (!hasBarItems(order) || order.drinksDone === true);
                 return (_jsxs("div", { style: {
                         border: "2px solid black",
                         padding: 20,
@@ -90,13 +112,31 @@ export default function Kitchen() {
                                                 width: "100%",
                                                 padding: "8px",
                                                 marginTop: "10px",
+                                            }, children: "Done" })] })), streetFood.length > 0 && (_jsxs("div", { children: [_jsx("h3", { children: "Street Food" }), streetFood.map((item, i) => (_jsx("p", { style: { fontSize: "18px", fontWeight: "bold" }, children: item.name }, i))), _jsx("button", { onClick: () => markStartersDone(order), style: {
+                                                background: order.startersDone ? "green" : "#eee",
+                                                color: order.startersDone ? "white" : "black",
+                                                width: "100%",
+                                                padding: "8px",
+                                                marginTop: "10px",
                                             }, children: "Done" })] })), mains.length > 0 && (_jsxs("div", { children: [_jsx("h3", { children: "Mains" }), mains.map((item, i) => (_jsx("p", { style: { fontSize: "18px", fontWeight: "bold" }, children: item.name }, i))), _jsx("button", { onClick: () => markMainsDone(order), style: {
                                                 background: order.mainsDone ? "green" : "#eee",
                                                 color: order.mainsDone ? "white" : "black",
                                                 width: "100%",
                                                 padding: "8px",
                                                 marginTop: "10px",
-                                            }, children: "Done" })] }))] }), allDone && (_jsx("button", { onClick: () => finishOrder(order), style: {
+                                            }, children: "Done" })] })), burgers.length > 0 && (_jsxs("div", { children: [_jsx("h3", { children: "Burgers" }), burgers.map((item, i) => (_jsx("p", { style: { fontSize: "18px", fontWeight: "bold" }, children: item.name }, i))), _jsx("button", { onClick: () => markMainsDone(order), style: {
+                                                background: order.mainsDone ? "green" : "#eee",
+                                                color: order.mainsDone ? "white" : "black",
+                                                width: "100%",
+                                                padding: "8px",
+                                                marginTop: "10px",
+                                            }, children: "Done" })] })), sides.length > 0 && (_jsxs("div", { children: [_jsx("h3", { children: "Sides" }), sides.map((item, i) => (_jsx("p", { style: { fontSize: "18px", fontWeight: "bold" }, children: item.name }, i))), _jsx("button", { onClick: () => markMainsDone(order), style: {
+                                                background: order.mainsDone ? "green" : "#eee",
+                                                color: order.mainsDone ? "white" : "black",
+                                                width: "100%",
+                                                padding: "8px",
+                                                marginTop: "10px",
+                                            }, children: "Done" })] }))] }), canComplete && (_jsx("button", { onClick: () => finishOrder(order), style: {
                                 background: "blue",
                                 color: "white",
                                 padding: "10px 20px",

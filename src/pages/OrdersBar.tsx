@@ -9,12 +9,14 @@ export default function OrdersBar() {
   const [completed, setCompleted] = useState<Order[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  const KITCHEN_CATEGORIES = ["starter", "main", "side", "burger", "streetfood"];
+
   useEffect(() => {
     async function refresh() {
       try {
         const allCompleted = (await fetchOrders(true)) as Order[];
         const barCompleted = allCompleted.filter((order) =>
-          order.items.some((i) => i.category === "mocktail"),
+          order.items.some((i) => !KITCHEN_CATEGORIES.includes(i.category)),
         );
         setCompleted(barCompleted);
         setError(null);
@@ -26,7 +28,7 @@ export default function OrdersBar() {
     refresh();
     socket.on("completed-orders", (orders: Order[]) => {
       const barCompleted = orders.filter((order) =>
-        order.items.some((i) => i.category === "mocktail"),
+        order.items.some((i) => !KITCHEN_CATEGORIES.includes(i.category)),
       );
       setCompleted(barCompleted);
     });
@@ -42,7 +44,9 @@ export default function OrdersBar() {
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       {completed.map((order) => {
-        const mocktails = order.items.filter((i) => i.category === "mocktail");
+        const barItems = order.items.filter(
+          (i) => !KITCHEN_CATEGORIES.includes(i.category),
+        );
         return (
           <div
             key={order.id}
@@ -59,10 +63,10 @@ export default function OrdersBar() {
                 ? `Order #${order.orderNumber}`
                 : `Table ${order.table}`}
             </h3>
-            {mocktails.length > 0 && (
+            {barItems.length > 0 && (
               <div style={{ marginBottom: 15 }}>
-                <h4 style={{ marginBottom: 8 }}>Mocktails</h4>
-                {mocktails.map((item, i) => (
+                <h4 style={{ marginBottom: 8 }}>Bar Items</h4>
+                {barItems.map((item, i) => (
                   <p key={i} style={{ margin: 4 }}>
                     • {item.name}
                   </p>

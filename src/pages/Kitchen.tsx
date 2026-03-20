@@ -9,10 +9,18 @@ export default function Kitchen() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  const KITCHEN_CATEGORIES = ["starter", "main", "main-veg", "side", "burger", "streetfood"];
+
+  const hasKitchenItems = (order: Order) =>
+    order.items.some((i) => KITCHEN_CATEGORIES.includes(i.category));
+
+  const hasBarItems = (order: Order) =>
+    order.items.some((i) => !KITCHEN_CATEGORIES.includes(i.category));
+
   const refreshOrders = async () => {
     try {
       const data = (await fetchOrders(false)) as Order[];
-      setOrders(data);
+      setOrders(data.filter(hasKitchenItems));
       setError(null);
     } catch (err: any) {
       setError(err?.message || "Could not refresh orders");
@@ -21,13 +29,19 @@ export default function Kitchen() {
 
   useEffect(() => {
     refreshOrders();
-    socket.on("all-orders", (data: Order[]) => setOrders(data));
-    socket.on("new-order", (order: Order) =>
-      setOrders((prev) => [...prev, order]),
+    socket.on("all-orders", (data: Order[]) =>
+      setOrders(data.filter(hasKitchenItems)),
     );
+    socket.on("new-order", (order: Order) => {
+      if (hasKitchenItems(order)) {
+        setOrders((prev) => [...prev, order]);
+      }
+    });
     socket.on("order-status-updated", (order: Order) =>
       setOrders((prev) =>
-        prev.map((o) => (o.id === order.id ? order : o)),
+        hasKitchenItems(order)
+          ? prev.map((o) => (o.id === order.id ? order : o))
+          : prev.filter((o) => o.id !== order.id),
       ),
     );
     socket.on("order-complete", (order: Order) =>
@@ -89,16 +103,41 @@ export default function Kitchen() {
       {orders
         .filter((order) => {
           const starters = order.items.filter((i) => i.category === "starter");
-          const mains = order.items.filter((i) => i.category === "main");
-          return starters.length > 0 || mains.length > 0;
+          const mains = order.items.filter(
+            (i) => i.category === "main" || i.category === "main-veg",
+          );
+          const burgers = order.items.filter((i) => i.category === "burger");
+          const streetFood = order.items.filter(
+            (i) => i.category === "streetfood",
+          );
+          const sides = order.items.filter((i) => i.category === "side");
+          return (
+            starters.length > 0 ||
+            mains.length > 0 ||
+            burgers.length > 0 ||
+            streetFood.length > 0 ||
+            sides.length > 0
+          );
         })
         .map((order) => {
           const starters = order.items.filter((i) => i.category === "starter");
-          const mains = order.items.filter((i) => i.category === "main");
+          const mains = order.items.filter(
+            (i) => i.category === "main" || i.category === "main-veg",
+          );
+          const burgers = order.items.filter((i) => i.category === "burger");
+          const streetFood = order.items.filter(
+            (i) => i.category === "streetfood",
+          );
+          const sides = order.items.filter((i) => i.category === "side");
 
-          const allDone =
-            (starters.length === 0 || order.startersDone) &&
-            (mains.length === 0 || order.mainsDone);
+          const allKitchenDone =
+            (starters.length + streetFood.length === 0 || order.startersDone) &&
+            (mains.length + burgers.length + sides.length === 0 ||
+              order.mainsDone);
+
+          const canComplete =
+            allKitchenDone &&
+            (!hasBarItems(order) || order.drinksDone === true);
 
           return (
             <div
@@ -149,6 +188,32 @@ export default function Kitchen() {
                   </div>
                 )}
 
+                {streetFood.length > 0 && (
+                  <div>
+                    <h3>Street Food</h3>
+                    {streetFood.map((item, i) => (
+                      <p
+                        key={i}
+                        style={{ fontSize: "18px", fontWeight: "bold" }}
+                      >
+                        {item.name}
+                      </p>
+                    ))}
+                    <button
+                      onClick={() => markStartersDone(order)}
+                      style={{
+                        background: order.startersDone ? "green" : "#eee",
+                        color: order.startersDone ? "white" : "black",
+                        width: "100%",
+                        padding: "8px",
+                        marginTop: "10px",
+                      }}
+                    >
+                      Done
+                    </button>
+                  </div>
+                )}
+
                 {mains.length > 0 && (
                   <div>
                     <h3>Mains</h3>
@@ -174,9 +239,61 @@ export default function Kitchen() {
                     </button>
                   </div>
                 )}
+
+                {burgers.length > 0 && (
+                  <div>
+                    <h3>Burgers</h3>
+                    {burgers.map((item, i) => (
+                      <p
+                        key={i}
+                        style={{ fontSize: "18px", fontWeight: "bold" }}
+                      >
+                        {item.name}
+                      </p>
+                    ))}
+                    <button
+                      onClick={() => markMainsDone(order)}
+                      style={{
+                        background: order.mainsDone ? "green" : "#eee",
+                        color: order.mainsDone ? "white" : "black",
+                        width: "100%",
+                        padding: "8px",
+                        marginTop: "10px",
+                      }}
+                    >
+                      Done
+                    </button>
+                  </div>
+                )}
+
+                {sides.length > 0 && (
+                  <div>
+                    <h3>Sides</h3>
+                    {sides.map((item, i) => (
+                      <p
+                        key={i}
+                        style={{ fontSize: "18px", fontWeight: "bold" }}
+                      >
+                        {item.name}
+                      </p>
+                    ))}
+                    <button
+                      onClick={() => markMainsDone(order)}
+                      style={{
+                        background: order.mainsDone ? "green" : "#eee",
+                        color: order.mainsDone ? "white" : "black",
+                        width: "100%",
+                        padding: "8px",
+                        marginTop: "10px",
+                      }}
+                    >
+                      Done
+                    </button>
+                  </div>
+                )}
               </div>
 
-              {allDone && (
+              {canComplete && (
                 <button
                   onClick={() => finishOrder(order)}
                   style={{

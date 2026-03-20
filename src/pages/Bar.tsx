@@ -9,10 +9,17 @@ export default function Bar() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const filterBar = (list: Order[]) =>
-    list.filter((order) =>
-      order.items.some((item) => item.category === "mocktail"),
-    );
+  const BAR_CATEGORIES = ["mocktail", "drink", "shake", "dessert"];
+  const KITCHEN_CATEGORIES = ["starter", "main", "side", "burger", "streetfood"];
+
+  const hasKitchenItems = (order: Order) =>
+    order.items.some((item) => KITCHEN_CATEGORIES.includes(item.category));
+
+  // Treat anything that is NOT a kitchen category as bar so new categories still show up
+  const hasBarItems = (order: Order) =>
+    order.items.some((item) => !KITCHEN_CATEGORIES.includes(item.category));
+
+  const filterBar = (list: Order[]) => list.filter(hasBarItems);
 
   const refreshOrders = async () => {
     try {
@@ -29,7 +36,7 @@ export default function Bar() {
     refreshOrders();
     socket.on("all-orders", (data: Order[]) => setOrders(filterBar(data)));
     socket.on("new-order", (order: Order) => {
-      if (order.items.some((i) => i.category === "mocktail")) {
+      if (hasBarItems(order)) {
         setOrders((prev) => [...prev, order]);
       }
     });
@@ -49,10 +56,21 @@ export default function Bar() {
     };
   }, []);
 
-  const markMocktailsDone = async (orderId: string) => {
+  const markBarItemsDone = async (order: Order) => {
     try {
-      await patchOrder(orderId, { action: "complete" });
-      setOrders((prev) => prev.filter((order) => order.id !== orderId));
+      // First, mark drinks/desserts as done
+      await patchOrder(order.id, { drinksDone: true });
+
+      // If there are no kitchen items, we can complete the order here.
+      if (!hasKitchenItems(order)) {
+        await patchOrder(order.id, { action: "complete" });
+        setOrders((prev) => prev.filter((o) => o.id !== order.id));
+      } else {
+        // Otherwise, keep it in the list; kitchen will complete once their items are done.
+        setOrders((prev) =>
+          prev.map((o) => (o.id === order.id ? { ...o, drinksDone: true } : o)),
+        );
+      }
       setError(null);
     } catch (err: any) {
       setError(err?.message || "Could not mark mocktails done");
@@ -66,6 +84,24 @@ export default function Bar() {
 
       {orders.map((order) => {
         const mocktails = order.items.filter((i) => i.category === "mocktail");
+        const desserts = order.items.filter((i) => i.category === "dessert");
+        const shakes = order.items.filter((i) => i.category === "shake");
+        const drinks = order.items.filter((i) => i.category === "drink");
+        const chaiLassi = drinks.filter((i) =>
+          /chai|lassi|tea/i.test(i.name),
+        );
+        const softJuice = drinks.filter(
+          (i) => !/chai|lassi|tea/i.test(i.name),
+        );
+
+        const barSections: { title: string; items: typeof order.items }[] = [
+          { title: "Mocktails", items: mocktails },
+          { title: "Desserts", items: desserts },
+          { title: "Chai & Lassi", items: chaiLassi },
+          { title: "Soft Drinks & Juices", items: softJuice },
+          { title: "Ice-Cream Shakes", items: shakes },
+        ].filter((s) => s.items.length > 0);
+
         return (
           <div
             key={order.id}
@@ -81,25 +117,36 @@ export default function Bar() {
                 ? `Order #${order.orderNumber}`
                 : `Table ${order.table}`}
             </h3>
-            <div>
-              <h4>Mocktails</h4>
-              {mocktails.map((item, i) => (
-                <p key={i} style={{ fontSize: "18px", fontWeight: "bold" }}>
-                  • {item.name}
-                </p>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 16,
+              }}
+            >
+              {barSections.map((section) => (
+                <div key={section.title}>
+                  <h4>{section.title}</h4>
+                  {section.items.map((item, i) => (
+                    <p key={i} style={{ fontSize: "18px", fontWeight: "bold" }}>
+                      • {item.name}
+                    </p>
+                  ))}
+                  <button
+                    onClick={() => markBarItemsDone(order)}
+                    style={{
+                      background: order.drinksDone ? "green" : "#eee",
+                      color: order.drinksDone ? "white" : "black",
+                      width: "100%",
+                      padding: "8px",
+                      marginTop: "10px",
+                    }}
+                  >
+                    Done
+                  </button>
+                </div>
               ))}
-              <button
-                onClick={() => markMocktailsDone(order.id)}
-                style={{
-                  background: "#eee",
-                  color: "black",
-                  width: "100%",
-                  padding: "8px",
-                  marginTop: "10px",
-                }}
-              >
-                Done
-              </button>
             </div>
           </div>
         );

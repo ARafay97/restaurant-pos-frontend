@@ -1,5 +1,9 @@
-// Default aligns with backend PORT=3001; override via VITE_API_URL.
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
+// Default aligns with backend PORT=4000 for local dev.
+// In production, fall back to current origin so Azure same-host deployments work without extra config.
+const API_BASE = import.meta.env.VITE_API_URL ||
+    (typeof window !== "undefined"
+        ? window.location.origin
+        : "http://localhost:4000");
 function buildUrl(path) {
     return `${API_BASE}${path}`;
 }
