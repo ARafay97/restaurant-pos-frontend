@@ -83,7 +83,7 @@
       "category": "dessert"
     },
     {
-      "name": "Shai Sweet Pan",
+      "name": "Shahi Sweet Pan",
       "price": 2.99,
       "category": "dessert"
     },
@@ -99,7 +99,7 @@
     },
     {
       "name": "Ice Cream (2 Scoops)",
-      "price": 3.49,
+      "price": 3.99,
       "category": "dessert"
     },
     {
@@ -231,6 +231,41 @@
     {
       "name": "Soft Drinks (Glass Bottle)",
       "price": 2.99,
+      "category": "drink"
+    },
+    {
+      "name": "Diet Coke",
+      "price": 1.99,
+      "category": "drink"
+    },
+    {
+      "name": "Coke",
+      "price": 1.99,
+      "category": "drink"
+    },
+    {
+      "name": "Sprite",
+      "price": 1.99,
+      "category": "drink"
+    },
+    {
+      "name": "Fanta",
+      "price": 1.99,
+      "category": "drink"
+    },
+    {
+      "name": "Rubicon Mango",
+      "price": 1.99,
+      "category": "drink"
+    },
+    {
+      "name": "Rubicon Guava",
+      "price": 1.99,
+      "category": "drink"
+    },
+    {
+      "name": "Rubicon Passion",
+      "price": 1.99,
       "category": "drink"
     },
     {
@@ -542,12 +577,13 @@
     },
     {
       "name": "Lamb Chops",
-      "price": 11.99,
+      "price": 9.99,
+      "priceAlt": 14.99,
       "category": "starter"
     },
     {
       "name": "Chicken Wings",
-      "price": 11.99,
+      "price": 4.99,
       "category": "starter"
     },
     {
