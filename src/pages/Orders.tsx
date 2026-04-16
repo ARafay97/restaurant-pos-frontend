@@ -112,7 +112,7 @@ export default function Orders() {
               onClick={async () => {
                 try {
                   setOrders((prev) => prev.filter((o) => o.id !== order.id));
-                  await patchOrder(order.id, { completed: true });
+                  await patchOrder(order.id, { action: "complete" });
                 } catch (err: any) {
                   setOrders((prev) => [...prev, order]);
                   alert(err?.message || "Failed to complete order");
