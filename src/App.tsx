@@ -20,6 +20,7 @@ export default function AppLayout() {
         <Link to="/employee">Employee</Link>
         <Link to="/kitchen">Kitchen</Link>
         <Link to="/bar">Bar</Link>
+        <Link to="/orders">Orders</Link>
         <Link to="/ordersBar">Completed Bar</Link>
         <Link to="/ordersKitchen">Completed Kitchen</Link>
       </header>

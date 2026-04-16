@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import menu from "@data/menu.json";
 import TableGrid from "@components/TableGrid";
 import MenuSection from "@components/MenuSection";
@@ -8,6 +9,7 @@ import { MenuItem } from "@models/order";
 import { createOrder } from "@services/api";
 
 export default function Employee() {
+  const router = useRouter();
   const [table, setTable] = useState<number>(1);
   const [isKitchenOrder, setIsKitchenOrder] = useState<boolean>(false);
   const [cart, setCart] = useState<MenuItem[]>([]);
@@ -17,10 +19,32 @@ export default function Employee() {
     { id: string; isKitchenOrder: boolean; table: number; orderNumber?: number | null; items: MenuItem[] }[]
   >([]);
 
+  // Load cart from localStorage on mount
+  useEffect(() => {
+    const savedCart = localStorage.getItem("employeeCart");
+    if (savedCart) {
+      try {
+        setCart(JSON.parse(savedCart));
+      } catch (e) {
+        console.error("Failed to load cart from localStorage", e);
+      }
+    }
+  }, []);
+
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("employeeCart", JSON.stringify(cart));
+  }, [cart]);
+
   const orderTotal = cart.reduce((sum, item) => sum + item.price, 0);
 
   const addItem = (item: MenuItem) => {
     setCart((prev) => [...prev, item]);
+  };
+
+  const clearCart = () => {
+    setCart([]);
+    localStorage.removeItem("employeeCart");
   };
 
   const sendOrder = async () => {
@@ -38,6 +62,7 @@ export default function Employee() {
       setBusy(true);
       const created = await createOrder(order);
       setCart([]);
+      localStorage.removeItem("employeeCart");
       setError(null);
       setSentOrders((prev) => [
         {
@@ -49,6 +74,8 @@ export default function Employee() {
         },
         ...prev,
       ]);
+      // Navigate to kitchen screen after successful order
+      router.push("/kitchen");
     } catch (err: any) {
       setError(err?.message || "Unable to send order");
     } finally {
@@ -103,9 +130,17 @@ export default function Employee() {
       <button
         onClick={sendOrder}
         disabled={cart.length === 0 || busy}
-        style={{ opacity: cart.length === 0 || busy ? 0.5 : 1 }}
+        style={{ opacity: cart.length === 0 || busy ? 0.5 : 1, marginRight: "10px" }}
       >
         {busy ? "Sending..." : "Send Order"}
+      </button>
+
+      <button
+        onClick={clearCart}
+        disabled={cart.length === 0}
+        style={{ opacity: cart.length === 0 ? 0.5 : 1 }}
+      >
+        Clear Order
       </button>
 
       {sentOrders.length > 0 && (
