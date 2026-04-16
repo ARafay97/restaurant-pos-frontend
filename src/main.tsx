@@ -10,6 +10,7 @@ import Bar from "./pages/Bar";
 import OrdersBar from "./pages/OrdersBar";
 import OrdersKitchen from "./pages/OrdersKitchen";
 import Orders from "./pages/Orders";
+import Completed from "./pages/Completed";
 
 const router = createBrowserRouter([
   {
@@ -21,6 +22,7 @@ const router = createBrowserRouter([
       { path: "kitchen", element: <Kitchen /> },
       { path: "bar", element: <Bar /> },
       { path: "orders", element: <Orders /> },
+      { path: "completed", element: <Completed /> },
       { path: "ordersBar", element: <OrdersBar /> },
       { path: "ordersKitchen", element: <OrdersKitchen /> },
     ],
