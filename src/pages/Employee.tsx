@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import menu from "@data/menu.json";
 import TableGrid from "@components/TableGrid";
 import MenuSection from "@components/MenuSection";
@@ -9,7 +9,7 @@ import { MenuItem } from "@models/order";
 import { createOrder } from "@services/api";
 
 export default function Employee() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [table, setTable] = useState<number>(1);
   const [isKitchenOrder, setIsKitchenOrder] = useState<boolean>(false);
   const [cart, setCart] = useState<MenuItem[]>([]);
@@ -75,7 +75,7 @@ export default function Employee() {
         ...prev,
       ]);
       // Navigate to kitchen screen after successful order
-      router.push("/kitchen");
+      navigate("/kitchen");
     } catch (err: any) {
       setError(err?.message || "Unable to send order");
     } finally {
