@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import menu from "@data/menu.json";
 import TableGrid from "@components/TableGrid";
 import MenuSection from "@components/MenuSection";
@@ -9,42 +8,25 @@ import { MenuItem } from "@models/order";
 import { createOrder } from "@services/api";
 
 export default function Employee() {
-  const navigate = useNavigate();
   const [table, setTable] = useState<number>(1);
   const [isKitchenOrder, setIsKitchenOrder] = useState<boolean>(false);
   const [cart, setCart] = useState<MenuItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [sentOrders, setSentOrders] = useState<
-    { id: string; isKitchenOrder: boolean; table: number; orderNumber?: number | null; items: MenuItem[] }[]
+    {
+      id: string;
+      isKitchenOrder: boolean;
+      table: number;
+      orderNumber?: number | null;
+      items: MenuItem[];
+    }[]
   >([]);
-
-  // Load cart from localStorage on mount
-  useEffect(() => {
-    const savedCart = localStorage.getItem("employeeCart");
-    if (savedCart) {
-      try {
-        setCart(JSON.parse(savedCart));
-      } catch (e) {
-        console.error("Failed to load cart from localStorage", e);
-      }
-    }
-  }, []);
-
-  // Save cart to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem("employeeCart", JSON.stringify(cart));
-  }, [cart]);
 
   const orderTotal = cart.reduce((sum, item) => sum + item.price, 0);
 
   const addItem = (item: MenuItem) => {
     setCart((prev) => [...prev, item]);
-  };
-
-  const clearCart = () => {
-    setCart([]);
-    localStorage.removeItem("employeeCart");
   };
 
   const sendOrder = async () => {
@@ -62,7 +44,6 @@ export default function Employee() {
       setBusy(true);
       const created = await createOrder(order);
       setCart([]);
-      localStorage.removeItem("employeeCart");
       setError(null);
       setSentOrders((prev) => [
         {
@@ -74,8 +55,6 @@ export default function Employee() {
         },
         ...prev,
       ]);
-      // Navigate to kitchen screen after successful order
-      navigate("/kitchen");
     } catch (err: any) {
       setError(err?.message || "Unable to send order");
     } finally {
@@ -100,17 +79,66 @@ export default function Employee() {
 
       {!isKitchenOrder && <TableGrid selected={table} setSelected={setTable} />}
 
-      <MenuSection title="Starters" items={menu.starters as MenuItem[]} addItem={addItem} />
-      <MenuSection title="Street Food" items={menu.streetFood as MenuItem[]} addItem={addItem} />
-      <MenuSection title="Mains" items={menu.mains as MenuItem[]} addItem={addItem} />
-      <MenuSection title="Vegetarian Mains" items={menu.vegMains as MenuItem[]} addItem={addItem} />
-      <MenuSection title="Burgers" items={menu.burgers as MenuItem[]} addItem={addItem} />
-      <MenuSection title="Desserts" items={menu.desserts as MenuItem[]} addItem={addItem} />
-      <MenuSection title="Mocktails" items={menu.mocktails as MenuItem[]} addItem={addItem} />
-      <MenuSection title="Chai & Lassi" items={menu.chai as MenuItem[]} addItem={addItem} />
-      <MenuSection title="Ice-Cream Shakes" items={menu.shakes as MenuItem[]} addItem={addItem} />
-      <MenuSection title="Soft Drinks & Juices" items={menu.softDrinks as MenuItem[]} addItem={addItem} />
-      <MenuSection title="Sides & Sundries" items={menu.sides as MenuItem[]} addItem={addItem} />
+      <MenuSection
+        title="Breakfast"
+        items={menu.breakfast as MenuItem[]}
+        addItem={addItem}
+      />
+      <MenuSection
+        title="Starters"
+        items={menu.starters as MenuItem[]}
+        addItem={addItem}
+      />
+      <MenuSection
+        title="Street Food"
+        items={menu.streetFood as MenuItem[]}
+        addItem={addItem}
+      />
+      <MenuSection
+        title="Mains"
+        items={menu.mains as MenuItem[]}
+        addItem={addItem}
+      />
+      <MenuSection
+        title="Vegetarian Mains"
+        items={menu.vegMains as MenuItem[]}
+        addItem={addItem}
+      />
+      <MenuSection
+        title="Burgers"
+        items={menu.burgers as MenuItem[]}
+        addItem={addItem}
+      />
+      <MenuSection
+        title="Desserts"
+        items={menu.desserts as MenuItem[]}
+        addItem={addItem}
+      />
+      <MenuSection
+        title="Mocktails"
+        items={menu.mocktails as MenuItem[]}
+        addItem={addItem}
+      />
+      <MenuSection
+        title="Chai & Lassi"
+        items={menu.chai as MenuItem[]}
+        addItem={addItem}
+      />
+      <MenuSection
+        title="Ice-Cream Shakes"
+        items={menu.shakes as MenuItem[]}
+        addItem={addItem}
+      />
+      <MenuSection
+        title="Soft Drinks & Juices"
+        items={menu.softDrinks as MenuItem[]}
+        addItem={addItem}
+      />
+      <MenuSection
+        title="Sides & Sundries"
+        items={menu.sides as MenuItem[]}
+        addItem={addItem}
+      />
 
       <h2>Current Order</h2>
 
@@ -130,17 +158,9 @@ export default function Employee() {
       <button
         onClick={sendOrder}
         disabled={cart.length === 0 || busy}
-        style={{ opacity: cart.length === 0 || busy ? 0.5 : 1, marginRight: "10px" }}
+        style={{ opacity: cart.length === 0 || busy ? 0.5 : 1 }}
       >
         {busy ? "Sending..." : "Send Order"}
-      </button>
-
-      <button
-        onClick={clearCart}
-        disabled={cart.length === 0}
-        style={{ opacity: cart.length === 0 ? 0.5 : 1 }}
-      >
-        Clear Order
       </button>
 
       {sentOrders.length > 0 && (
@@ -170,7 +190,9 @@ export default function Employee() {
               </div>
               <div style={{ marginTop: 6, fontWeight: "bold" }}>
                 Total: £
-                {order.items.reduce((sum, item) => sum + item.price, 0).toFixed(2)}
+                {order.items
+                  .reduce((sum, item) => sum + item.price, 0)
+                  .toFixed(2)}
               </div>
             </div>
           ))}

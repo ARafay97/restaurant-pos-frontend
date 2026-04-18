@@ -82,13 +82,18 @@
       "price": 4.99,
       "category": "dessert"
     },
+        {
+      "name": "Irn Bru",
+      "price": 1.99,
+      "category": "dessert"
+    },
     {
-      "name": "Shahi Sweet Pan",
+      "name": "Shai Sweet Pan",
       "price": 2.99,
       "category": "dessert"
     },
     {
-      "name": "Laberi Kulfi",
+      "name": "Lahori Kulfi",
       "price": 2.49,
       "category": "dessert"
     },
@@ -99,7 +104,7 @@
     },
     {
       "name": "Ice Cream (2 Scoops)",
-      "price": 3.99,
+      "price": 3.49,
       "category": "dessert"
     },
     {
@@ -234,41 +239,6 @@
       "category": "drink"
     },
     {
-      "name": "Diet Coke",
-      "price": 1.99,
-      "category": "drink"
-    },
-    {
-      "name": "Coke",
-      "price": 1.99,
-      "category": "drink"
-    },
-    {
-      "name": "Sprite",
-      "price": 1.99,
-      "category": "drink"
-    },
-    {
-      "name": "Fanta",
-      "price": 1.99,
-      "category": "drink"
-    },
-    {
-      "name": "Rubicon Mango",
-      "price": 1.99,
-      "category": "drink"
-    },
-    {
-      "name": "Rubicon Guava",
-      "price": 1.99,
-      "category": "drink"
-    },
-    {
-      "name": "Rubicon Passion",
-      "price": 1.99,
-      "category": "drink"
-    },
-    {
       "name": "Juice (Apple/Orange)",
       "price": 2.99,
       "category": "drink"
@@ -282,39 +252,56 @@
       "name": "Bottled Water",
       "price": 0.99,
       "category": "drink"
+    },
+        {
+      "name": "Diet coke",
+      "price": 1.99,
+      "category": "drink"
+    },
+            {
+      "name": "Rubicon Mango",
+      "price": 1.99,
+      "category": "drink"
+    },
+            {
+      "name": "Rubicon Mango",
+      "price": 1.99,
+      "category": "drink"
+    },
+            {
+      "name": "Rubicon Passion",
+      "price": 1.99,
+      "category": "drink"
+    },
+            {
+      "name": "Sprite",
+      "price": 1.99,
+      "category": "drink"
+    },
+            {
+      "name": "Fanta",
+      "price": 1.99,
+      "category": "drink"
+    },
+            {
+      "name": "Irn Bru",
+      "price": 1.99,
+      "category": "drink"
+    },
+            {
+      "name": "Coke Zero",
+      "price": 1.99,
+      "category": "drink"
+    },
+            {
+      "name": "Coke",
+      "price": 1.99,
+      "category": "drink"
     }
+
   ],
   "burgers": [
-    {
-      "name": "Smash Burger (Single)",
-      "price": 6.99,
-      "category": "burger"
-    },
-    {
-      "name": "Smash Burger (Double)",
-      "price": 7.99,
-      "category": "burger"
-    },
-    {
-      "name": "Spicy Chicken Burger (Single)",
-      "price": 5.99,
-      "category": "burger"
-    },
-    {
-      "name": "Spicy Chicken Burger (Double)",
-      "price": 6.99,
-      "category": "burger"
-    },
-    {
-      "name": "Tower Burger",
-      "price": 9.99,
-      "category": "burger"
-    },
-    {
-      "name": "Godfather Burger",
-      "price": 10.99,
-      "category": "burger"
-    }
+
   ],
   "mains": [
     {
@@ -577,13 +564,12 @@
     },
     {
       "name": "Lamb Chops",
-      "price": 9.99,
-      "priceAlt": 14.99,
+      "price": 11.99,
       "category": "starter"
     },
     {
       "name": "Chicken Wings",
-      "price": 4.99,
+      "price": 11.99,
       "category": "starter"
     },
     {
@@ -640,6 +626,43 @@
       "name": "Lahori Masala Fish",
       "price": 9.99,
       "category": "starter"
+    }
+  ],
+  "breakfast": [
+    {
+      "name": "Platter 1",
+      "price": 6.99,
+      "category": "breakfast"
+    },
+    {
+      "name": "Platter 2",
+      "price": 7.49,
+      "category": "breakfast"
+    },
+    {
+      "name": "Platter 3",
+      "price": 7.99,
+      "category": "breakfast"
+    },
+    {
+      "name": "Platter 4",
+      "price": 8.49,
+      "category": "breakfast"
+    },
+    {
+      "name": "Platter 5",
+      "price": 8.99,
+      "category": "breakfast"
+    },
+    {
+      "name": "Nihari",
+      "price": 9.99,
+      "category": "breakfast"
+    },
+    {
+      "name": "Paya",
+      "price": 9.99,
+      "category": "breakfast"
     }
   ]
 }
