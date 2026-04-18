@@ -654,6 +654,16 @@
       "price": 8.99,
       "category": "breakfast"
     },
+        {
+      "name": "Halwa Puri",
+      "price": 6.99,
+      "category": "breakfast"
+    },
+            {
+      "name": "Halwa Puri for 2",
+      "price": 12.99,
+      "category": "breakfast"
+    },
     {
       "name": "Nihari",
       "price": 9.99,
@@ -662,6 +672,11 @@
     {
       "name": "Paya",
       "price": 9.99,
+      "category": "breakfast"
+    },
+        {
+      "name": "English Breakfast",
+      "price": 8.49,
       "category": "breakfast"
     }
   ]
