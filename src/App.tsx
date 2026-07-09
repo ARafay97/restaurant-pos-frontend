@@ -1,31 +1,37 @@
-import { Link, Outlet } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
+
+const links = [
+  { to: "/", label: "Home", end: true },
+  { to: "/employee", label: "Employee" },
+  { to: "/kitchen", label: "Kitchen" },
+  { to: "/bar", label: "Bar" },
+  { to: "/orders", label: "Orders" },
+  { to: "/completed", label: "Completed" },
+  { to: "/ordersBar", label: "Completed Bar" },
+  { to: "/ordersKitchen", label: "Completed Kitchen" },
+];
 
 export default function AppLayout() {
   return (
     <div>
-      <header
-        style={{
-          display: "flex",
-          gap: 12,
-          padding: "12px 16px",
-          borderBottom: "1px solid #ddd",
-          alignItems: "center",
-          flexWrap: "wrap",
-          width: "100%",
-          boxSizing: "border-box",
-        }}
-      >
-        <strong style={{ marginRight: 8 }}>Restaurant POS</strong>
-        <Link to="/">Home</Link>
-        <Link to="/employee">Employee</Link>
-        <Link to="/kitchen">Kitchen</Link>
-        <Link to="/bar">Bar</Link>
-        <Link to="/orders">Orders</Link>
-        <Link to="/completed">Completed</Link>
-        <Link to="/ordersBar">Completed Bar</Link>
-        <Link to="/ordersKitchen">Completed Kitchen</Link>
+      <header className="pos-header">
+        <div className="pos-header__inner">
+          <span className="brand">MyBagh POS</span>
+          <nav className="pos-nav">
+            {links.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                end={link.end}
+                className={({ isActive }) => (isActive ? "is-active" : undefined)}
+              >
+                {link.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
       </header>
-      <main style={{ padding: "12px 14px" }}>
+      <main className="pos-main">
         <Outlet />
       </main>
     </div>

@@ -1,11 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import menu from "@data/menu.json";
+import { MENU_SECTIONS } from "@data/categories";
 import TableGrid from "@components/TableGrid";
 import MenuSection from "@components/MenuSection";
 import { MenuItem } from "@models/order";
 import { createOrder } from "@services/api";
+
+type CartLine = { item: MenuItem; qty: number; indices: number[] };
+
+function groupCart(cart: MenuItem[]): CartLine[] {
+  const lines: CartLine[] = [];
+  const lineIndexByKey = new Map<string, number>();
+
+  cart.forEach((item, idx) => {
+    const key = `${item.name}__${item.price}`;
+    const existing = lineIndexByKey.get(key);
+    if (existing !== undefined) {
+      lines[existing].qty += 1;
+      lines[existing].indices.push(idx);
+    } else {
+      lineIndexByKey.set(key, lines.length);
+      lines.push({ item, qty: 1, indices: [idx] });
+    }
+  });
+
+  return lines;
+}
 
 export default function Employee() {
   const [table, setTable] = useState<number>(1);
@@ -23,10 +45,17 @@ export default function Employee() {
     }[]
   >([]);
 
+  const cartLines = useMemo(() => groupCart(cart), [cart]);
   const orderTotal = cart.reduce((sum, item) => sum + item.price, 0);
 
   const addItem = (item: MenuItem) => {
     setCart((prev) => [...prev, item]);
+  };
+
+  // Removes a single instance of a cart line (the "delete individual items" control).
+  const removeOneOf = (line: CartLine) => {
+    const lastIndex = line.indices[line.indices.length - 1];
+    setCart((prev) => prev.filter((_, i) => i !== lastIndex));
   };
 
   const sendOrder = async () => {
@@ -63,136 +92,89 @@ export default function Employee() {
   };
 
   return (
-    <div style={{ padding: 12 }}>
-      <h1>Employee Screen</h1>
+    <div>
+      <h1 className="page-title">Employee Screen</h1>
 
-      <div style={{ marginBottom: 20 }}>
-        <label>
-          <input
-            type="checkbox"
-            checked={isKitchenOrder}
-            onChange={(e) => setIsKitchenOrder(e.target.checked)}
-          />
-          Takeout Order
-        </label>
-      </div>
+      <label className="checkbox-row">
+        <input
+          type="checkbox"
+          checked={isKitchenOrder}
+          onChange={(e) => setIsKitchenOrder(e.target.checked)}
+        />
+        Takeout Order
+      </label>
 
       {!isKitchenOrder && <TableGrid selected={table} setSelected={setTable} />}
 
-      <MenuSection
-        title="Breakfast"
-        items={menu.breakfast as MenuItem[]}
-        addItem={addItem}
-      />
-      <MenuSection
-        title="Starters"
-        items={menu.starters as MenuItem[]}
-        addItem={addItem}
-      />
-      <MenuSection
-        title="Street Food"
-        items={menu.streetFood as MenuItem[]}
-        addItem={addItem}
-      />
-      <MenuSection
-        title="Mains"
-        items={menu.mains as MenuItem[]}
-        addItem={addItem}
-      />
-      <MenuSection
-        title="Vegetarian Mains"
-        items={menu.vegMains as MenuItem[]}
-        addItem={addItem}
-      />
-      <MenuSection
-        title="Burgers"
-        items={menu.burgers as MenuItem[]}
-        addItem={addItem}
-      />
-      <MenuSection
-        title="Desserts"
-        items={menu.desserts as MenuItem[]}
-        addItem={addItem}
-      />
-      <MenuSection
-        title="Mocktails"
-        items={menu.mocktails as MenuItem[]}
-        addItem={addItem}
-      />
-      <MenuSection
-        title="Chai & Lassi"
-        items={menu.chai as MenuItem[]}
-        addItem={addItem}
-      />
-      <MenuSection
-        title="Ice-Cream Shakes"
-        items={menu.shakes as MenuItem[]}
-        addItem={addItem}
-      />
-      <MenuSection
-        title="Soft Drinks & Juices"
-        items={menu.softDrinks as MenuItem[]}
-        addItem={addItem}
-      />
-      <MenuSection
-        title="Sides & Sundries"
-        items={menu.sides as MenuItem[]}
-        addItem={addItem}
-      />
+      {MENU_SECTIONS.map((section) => (
+        <MenuSection
+          key={section.menuKey}
+          title={section.label}
+          items={menu[section.menuKey] as MenuItem[]}
+          addItem={addItem}
+        />
+      ))}
 
-      <h2>Current Order</h2>
+      <div className="card cart" style={{ padding: 18, marginTop: 30 }}>
+        <h2 style={{ fontSize: 16, color: "var(--gold)" }}>Current Order</h2>
 
-      <ul>
-        {cart.map((item, i) => (
-          <li key={i}>{item.name}</li>
+        {cartLines.length === 0 && <p className="empty-state">No items yet — tap a menu item to add it.</p>}
+
+        {cartLines.map((line) => (
+          <div className="cart-line" key={`${line.item.name}__${line.item.price}`}>
+            <span className="cart-line__qty">{line.qty}×</span>
+            <span className="cart-line__name">{line.item.name}</span>
+            <span className="cart-line__price">
+              £{(line.item.price * line.qty).toFixed(2)}
+            </span>
+            <button
+              type="button"
+              className="btn btn-danger btn-icon"
+              onClick={() => removeOneOf(line)}
+              aria-label={`Remove one ${line.item.name}`}
+              title="Remove one"
+            >
+              ×
+            </button>
+          </div>
         ))}
-      </ul>
-      {cart.length > 0 && (
-        <p style={{ fontWeight: "bold", marginTop: 6 }}>
-          Total: £{orderTotal.toFixed(2)}
-        </p>
-      )}
 
-      {error && <p style={{ color: "red", marginBottom: "10px" }}>{error}</p>}
+        {cart.length > 0 && <p className="cart-total">Total: £{orderTotal.toFixed(2)}</p>}
 
-      <button
-        onClick={sendOrder}
-        disabled={cart.length === 0 || busy}
-        style={{ opacity: cart.length === 0 || busy ? 0.5 : 1 }}
-      >
-        {busy ? "Sending..." : "Send Order"}
-      </button>
+        {error && <p className="error-text">{error}</p>}
+
+        <button
+          type="button"
+          className="btn btn-gold btn-block"
+          onClick={sendOrder}
+          disabled={cart.length === 0 || busy}
+          style={{ marginTop: 14 }}
+        >
+          {busy ? "Sending..." : "Send Order"}
+        </button>
+      </div>
 
       {sentOrders.length > 0 && (
         <div style={{ marginTop: 30 }}>
-          <h3>Recently Sent Orders</h3>
+          <h3 style={{ color: "var(--gold)", fontSize: 15 }}>Recently Sent Orders</h3>
           {sentOrders.slice(0, 5).map((order) => (
-            <div
-              key={order.id}
-              style={{
-                border: "1px solid #ccc",
-                padding: "10px",
-                marginTop: "10px",
-                background: "#fafafa",
-              }}
-            >
-              <strong>
-                {order.isKitchenOrder
-                  ? `Kitchen Order #${order.orderNumber ?? "-"}`
-                  : `Table ${order.table}`}
-              </strong>
-              <div style={{ marginTop: 6 }}>
+            <div key={order.id} className="ticket">
+              <div className="ticket__header">
+                <span className="ticket__badge">
+                  {order.isKitchenOrder
+                    ? `Kitchen Order #${order.orderNumber ?? "-"}`
+                    : `Table ${order.table}`}
+                </span>
+              </div>
+              <div>
                 {order.items.map((item, idx) => (
-                  <span key={idx} style={{ marginRight: 8 }}>
+                  <span key={idx} className="ticket-section__item" style={{ marginRight: 10, display: "inline-block" }}>
                     • {item.name}
                   </span>
                 ))}
               </div>
-              <div style={{ marginTop: 6, fontWeight: "bold" }}>
-                Total: £
-                {order.items
-                  .reduce((sum, item) => sum + item.price, 0)
-                  .toFixed(2)}
+              <div className="ticket__total">
+                Total: £{order.items.reduce((sum, item) => sum + item.price, 0).toFixed(2)}
               </div>
             </div>
           ))}

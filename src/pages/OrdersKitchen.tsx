@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { fetchOrders } from "@services/api";
 import { Order } from "@models/order";
 import { socket } from "@services/socket";
+import { groupOrderItems, hasKitchenItems } from "@data/categories";
 
 export default function OrdersKitchen() {
   const [completed, setCompleted] = useState<Order[]>([]);
@@ -13,10 +14,7 @@ export default function OrdersKitchen() {
     async function refresh() {
       try {
         const allCompleted = (await fetchOrders(true)) as Order[];
-        const kitchenCompleted = allCompleted.filter((order) =>
-          order.items.some((i) => i.category !== "mocktail"),
-        );
-        setCompleted(kitchenCompleted);
+        setCompleted(allCompleted.filter((order) => hasKitchenItems(order.items)));
         setError(null);
       } catch (err: any) {
         setError(err?.message || "Could not load completed kitchen orders");
@@ -25,10 +23,7 @@ export default function OrdersKitchen() {
 
     refresh();
     socket.on("completed-orders", (orders: Order[]) => {
-      const kitchenCompleted = orders.filter((order) =>
-        order.items.some((i) => i.category !== "mocktail"),
-      );
-      setCompleted(kitchenCompleted);
+      setCompleted(orders.filter((order) => hasKitchenItems(order.items)));
     });
     socket.emit("request-completed-orders");
     return () => {
@@ -37,49 +32,30 @@ export default function OrdersKitchen() {
   }, []);
 
   return (
-    <div style={{ padding: 30 }}>
-      <h1>Completed Kitchen Orders</h1>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+    <div>
+      <h1 className="page-title">Completed Kitchen Orders</h1>
+      {error && <p className="error-text">{error}</p>}
+      {completed.length === 0 && <p className="empty-state">No completed kitchen orders.</p>}
 
       {completed.map((order) => {
-        const starters = order.items.filter((i) => i.category === "starter");
-        const mains = order.items.filter((i) => i.category === "main");
+        const sections = groupOrderItems(order.items, "kitchen");
         return (
-          <div
-            key={order.id}
-            style={{
-              border: "2px solid #444",
-              padding: 20,
-              marginBottom: 20,
-              width: 520,
-              backgroundColor: "#f8f8ff",
-            }}
-          >
-            <h3>
-              {order.isKitchenOrder
-                ? `Order #${order.orderNumber}`
-                : `Table ${order.table}`}
-            </h3>
-            {starters.length > 0 && (
-              <div style={{ marginBottom: 10 }}>
-                <h4>Starters</h4>
-                {starters.map((item, i) => (
-                  <p key={i} style={{ margin: 4 }}>
+          <div key={order.id} className="ticket" style={{ maxWidth: 540 }}>
+            <div className="ticket__header">
+              <span className="ticket__badge">
+                {order.isKitchenOrder ? `Order #${order.orderNumber}` : `Table ${order.table}`}
+              </span>
+            </div>
+            {sections.map((section) => (
+              <div key={section.title} className="ticket-section" style={{ marginBottom: 12 }}>
+                <div className="ticket-section__title">{section.title}</div>
+                {section.items.map((item, i) => (
+                  <p key={i} className="ticket-section__item">
                     • {item.name}
                   </p>
                 ))}
               </div>
-            )}
-            {mains.length > 0 && (
-              <div style={{ marginBottom: 10 }}>
-                <h4>Mains</h4>
-                {mains.map((item, i) => (
-                  <p key={i} style={{ margin: 4 }}>
-                    • {item.name}
-                  </p>
-                ))}
-              </div>
-            )}
+            ))}
           </div>
         );
       })}

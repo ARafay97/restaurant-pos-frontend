@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { fetchOrders } from "@services/api";
 import { Order } from "@models/order";
 import { socket } from "@services/socket";
+import { groupOrderItems } from "@data/categories";
 
 export default function Completed() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -28,67 +29,29 @@ export default function Completed() {
   }, []);
 
   return (
-    <div style={{ padding: 30 }}>
-      <h1>Completed Orders</h1>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {orders.length === 0 && <p>No completed orders.</p>}
+    <div>
+      <h1 className="page-title">Completed Orders</h1>
+      {error && <p className="error-text">{error}</p>}
+      {orders.length === 0 && <p className="empty-state">No completed orders.</p>}
 
       {orders.map((order) => {
-        const starters = order.items.filter((i) => i.category === "starter");
-        const streetFood = order.items.filter((i) => i.category === "streetfood");
-        const mains = order.items.filter(
-          (i) => i.category === "main" || i.category === "main-veg",
-        );
-        const burgers = order.items.filter((i) => i.category === "burger");
-        const sides = order.items.filter((i) => i.category === "side");
-        const mocktails = order.items.filter((i) => i.category === "mocktail");
-        const desserts = order.items.filter((i) => i.category === "dessert");
-        const shakes = order.items.filter((i) => i.category === "shake");
-        const drinks = order.items.filter((i) => i.category === "drink");
-
-        const sections = [
-          { title: "Starters", items: starters },
-          { title: "Street Food", items: streetFood },
-          { title: "Mains", items: mains },
-          { title: "Burgers", items: burgers },
-          { title: "Sides", items: sides },
-          { title: "Mocktails", items: mocktails },
-          { title: "Desserts", items: desserts },
-          { title: "Ice-Cream Shakes", items: shakes },
-          { title: "Drinks", items: drinks },
-        ].filter((s) => s.items.length > 0);
-
+        const sections = groupOrderItems(order.items);
         const total = order.items.reduce((sum, i) => sum + i.price, 0);
 
         return (
-          <div
-            key={order.id}
-            style={{
-              border: "2px solid #22c55e",
-              padding: 20,
-              marginBottom: 20,
-              width: 500,
-              backgroundColor: "#f0fff4",
-            }}
-          >
-            <h2>
-              {order.isKitchenOrder
-                ? `Order #${order.orderNumber}`
-                : `Table ${order.table}`}
-            </h2>
+          <div key={order.id} className="ticket" style={{ maxWidth: 560 }}>
+            <div className="ticket__header">
+              <span className="ticket__badge">
+                {order.isKitchenOrder ? `Order #${order.orderNumber}` : `Table ${order.table}`}
+              </span>
+            </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 20,
-              }}
-            >
+            <div className="ticket-grid">
               {sections.map((section) => (
-                <div key={section.title}>
-                  <h3>{section.title}</h3>
+                <div key={section.title} className="ticket-section">
+                  <div className="ticket-section__title">{section.title}</div>
                   {section.items.map((item, i) => (
-                    <p key={i} style={{ fontSize: "18px", fontWeight: "bold" }}>
+                    <p key={i} className="ticket-section__item">
                       {item.name}
                     </p>
                   ))}
@@ -96,9 +59,7 @@ export default function Completed() {
               ))}
             </div>
 
-            <p style={{ marginTop: 16, fontWeight: "bold" }}>
-              Total: £{total.toFixed(2)}
-            </p>
+            <p className="ticket__total">Total: £{total.toFixed(2)}</p>
           </div>
         );
       })}
