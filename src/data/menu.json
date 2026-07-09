@@ -47,7 +47,15 @@
     { "name": "Soft Drinks (Can)", "price": 1.99, "category": "softdrink" },
     { "name": "Soft Drinks (Bottle)", "price": 2.99, "category": "softdrink" },
     { "name": "Fruit Shoot", "price": 0.99, "category": "softdrink" },
-    { "name": "Bottled Water", "price": 0.99, "category": "softdrink" }
+    { "name": "Bottled Water", "price": 0.99, "category": "softdrink" },
+    { "name": "Coke", "price": 1.99, "category": "softdrink" },
+    { "name": "Coke Zero", "price": 1.99, "category": "softdrink" },
+    { "name": "Diet Coke", "price": 1.99, "category": "softdrink" },
+    { "name": "Fanta", "price": 1.99, "category": "softdrink" },
+    { "name": "Irn Bru", "price": 1.99, "category": "softdrink" },
+    { "name": "Pepsi", "price": 1.99, "category": "softdrink" },
+    { "name": "Rubicon Mango", "price": 1.99, "category": "softdrink" },
+    { "name": "Sprite", "price": 1.99, "category": "softdrink" }
   ],
   "burgers": [
     { "name": "Smash Burger", "price": 6.99, "category": "burger" },
